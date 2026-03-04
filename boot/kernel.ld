@@ -1,3 +1,5 @@
+/* Liner script: lays out kernel sections and physical/virtual addresses in memory */
+
 /* Simple linker script for the JOS kernel.
    See the GNU ld 'info' manual ("info ld") to learn the syntax. */
 

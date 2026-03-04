@@ -5,10 +5,10 @@
 #include "types.h"
 #include "defs.h"
 #include "date.h"
-#include "memlayout.h"
+#include "./boot/memlayout.h"
 #include "traps.h"
-#include "mmu.h"
-#include "x86.h"
+#include "./boot/mmu.h"
+#include "./boot/x86.h"
 
 // Local APIC registers, divided by 4 for use as uint[] indices.
 #define ID      (0x0020/4)   // ID

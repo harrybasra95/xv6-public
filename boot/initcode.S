@@ -1,3 +1,5 @@
+# Tiny first user-space program image the execs /init.
+
 # Initial process execs /init.
 # This code runs in user space.
 

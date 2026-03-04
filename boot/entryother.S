@@ -1,3 +1,5 @@
+# AP (Other CPU cores) bootstrapcode multiprocessor startup.
+
 #include "asm.h"
 #include "memlayout.h"
 #include "mmu.h"

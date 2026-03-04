@@ -1,3 +1,4 @@
+// Bootloader C: loads the kernel ELF from disk into memory and jumps to kernel entry.
 // Boot loader.
 //
 // Part of the boot block, along with bootasm.S, which calls bootmain().

@@ -1,3 +1,4 @@
+# 16-bitloader assembly: starts in real mode, switches to protected mode, jumps into C
 #include "asm.h"
 #include "memlayout.h"
 #include "mmu.h"

@@ -5,8 +5,8 @@
 #include "types.h"
 #include "defs.h"
 #include "param.h"
-#include "memlayout.h"
-#include "mmu.h"
+#include "./boot/memlayout.h"
+#include "./boot/mmu.h"
 #include "spinlock.h"
 
 void freerange(void *vstart, void *vend);

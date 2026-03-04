@@ -1,3 +1,4 @@
+# Assembly stubs for traps/interrupts; saves state and enters C trap handler.
 #include "mmu.h"
 
   # vectors.S sends all traps here.

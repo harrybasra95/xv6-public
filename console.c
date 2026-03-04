@@ -10,10 +10,10 @@
 #include "sleeplock.h"
 #include "fs.h"
 #include "file.h"
-#include "memlayout.h"
-#include "mmu.h"
+#include "./boot/memlayout.h"
+#include "./boot/mmu.h"
 #include "proc.h"
-#include "x86.h"
+#include "./boot/x86.h"
 
 static void consputc(int);
 

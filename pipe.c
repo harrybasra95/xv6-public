@@ -1,7 +1,7 @@
 #include "types.h"
 #include "defs.h"
 #include "param.h"
-#include "mmu.h"
+#include "./boot/mmu.h"
 #include "proc.h"
 #include "fs.h"
 #include "spinlock.h"

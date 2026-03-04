@@ -6,7 +6,7 @@
 #include "fcntl.h"
 #include "syscall.h"
 #include "traps.h"
-#include "memlayout.h"
+#include "./boot/memlayout.h"
 
 char buf[8192];
 char name[3];

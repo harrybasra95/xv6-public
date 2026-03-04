@@ -1,3 +1,4 @@
+// Inline ASM helpers for x86 instructions (inb/outb, lgdt, lidt)
 // Routines to let C code use special x86 instructions.
 
 static inline uchar

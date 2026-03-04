@@ -1,3 +1,5 @@
+# Kernel entry code: sets up initial stack/segments and calls into main
+
 # The xv6 kernel starts executing in this file. This file is linked with
 # the kernel C code, so it can refer to kernel symbols such as main().
 # The boot block (bootasm.S and bootmain.c) jumps to entry below.

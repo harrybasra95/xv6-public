@@ -1,3 +1,4 @@
+# Script that generates interrupt vector stubs
 #!/usr/bin/perl -w
 
 # Generate vectors.S, the trap/interrupt entry points.

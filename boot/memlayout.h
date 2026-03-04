@@ -1,3 +1,4 @@
+// Memory map constants: kernel base, device regions, physical layout
 // Memory layout
 
 #define EXTMEM  0x100000            // Start of extended memory

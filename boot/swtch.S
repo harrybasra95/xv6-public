@@ -1,3 +1,4 @@
+# Context switch routine (save/restore registers between processes)
 # Context switch
 #
 #   void swtch(struct context **old, struct context *new);

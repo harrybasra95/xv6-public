@@ -5,10 +5,10 @@
 #include "types.h"
 #include "defs.h"
 #include "param.h"
-#include "memlayout.h"
+#include "./boot/memlayout.h"
 #include "mp.h"
-#include "x86.h"
-#include "mmu.h"
+#include "./boot/x86.h"
+#include "./boot/mmu.h"
 #include "proc.h"
 
 struct cpu cpus[NCPU];

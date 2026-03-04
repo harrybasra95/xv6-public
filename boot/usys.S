@@ -1,3 +1,4 @@
+# User-space syscall stubs (wrappers that invoke int/sysenter)
 #include "syscall.h"
 #include "traps.h"
 
