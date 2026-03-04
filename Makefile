@@ -79,6 +79,7 @@ OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS += -Wno-array-bounds -Wno-infinite-recursion
+CFLAGS += -Iboot -Ikernel-core -I.
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
@@ -90,6 +91,9 @@ endif
 ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
 CFLAGS += -fno-pie -nopie
 endif
+
+
+
 
 xv6.img: bootblock kernel
 	dd if=/dev/zero of=xv6.img count=10000
@@ -109,20 +113,20 @@ bootblock: ./boot/bootasm.S ./boot/bootmain.c
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
 	./sign.pl bootblock
 
-entryother: entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c entryother.S
+entryother: boot/entryother.S
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c boot/entryother.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
 	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
 	$(OBJDUMP) -S bootblockother.o > entryother.asm
 
-initcode: initcode.S
-	$(CC) $(CFLAGS) -nostdinc -I. -c initcode.S
+initcode: boot/initcode.S
+	$(CC) $(CFLAGS) -nostdinc -I. -c boot/initcode.S
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o initcode.out initcode.o
 	$(OBJCOPY) -S -O binary initcode.out initcode
 	$(OBJDUMP) -S initcode.o > initcode.asm
 
-kernel: $(OBJS) entry.o entryother initcode kernel.ld
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
+kernel: $(OBJS) entry.o entryother initcode boot/kernel.ld
+	$(LD) $(LDFLAGS) -T boot/kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
 	$(OBJDUMP) -S kernel > kernel.asm
 	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
 
@@ -133,16 +137,16 @@ kernel: $(OBJS) entry.o entryother initcode kernel.ld
 # great for testing the kernel on real hardware without
 # needing a scratch disk.
 MEMFSOBJS = $(filter-out ide.o,$(OBJS)) memide.o
-kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode kernel.ld fs.img
-	$(LD) $(LDFLAGS) -T kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
+kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode boot/kernel.ld fs.img
+	$(LD) $(LDFLAGS) -T boot/kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
 	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
 	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
 
 tags: $(OBJS) entryother.S _init
 	etags *.S *.c
 
-vectors.S: vectors.pl
-	./vectors.pl > vectors.S
+vectors.S: boot/vectors.pl
+	perl boot/vectors.pl > vectors.S
 
 ULIB = ulib.o usys.o printf.o umalloc.o
 
@@ -285,3 +289,35 @@ tar:
 	(cd /tmp; tar cf - xv6) | gzip >xv6-rev10.tar.gz  # the next one will be 10 (9/17)
 
 .PHONY: dist-test dist
+
+
+exec.o: kernel-core/exec.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kalloc.o: kernel-core/kalloc.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+main.o: kernel-core/main.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+proc.o: kernel-core/proc.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+syscall.o: kernel-core/syscall.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+sysproc.o: kernel-core/sysproc.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+trap.o: kernel-core/trap.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+swtch.o: boot/swtch.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+trapasm.o: boot/trapasm.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+entry.o: boot/entry.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
