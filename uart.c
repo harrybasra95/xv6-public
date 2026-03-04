@@ -3,13 +3,13 @@
 #include "types.h"
 #include "defs.h"
 #include "param.h"
-#include "traps.h"
+#include "./kernel-core/traps.h"
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "fs.h"
 #include "file.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 #include "./boot/x86.h"
 
 #define COM1    0x3f8

@@ -1,3 +1,4 @@
+// Trap numbers/structures and trap-related definitions
 // x86 trap and interrupt constants.
 
 // Processor-defined:

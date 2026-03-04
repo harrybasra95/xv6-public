@@ -1,6 +1,6 @@
 #include "types.h"
 #include "./boot/x86.h"
-#include "traps.h"
+#include "./kernel-core/traps.h"
 
 // I/O Addresses of the two programmable interrupt controllers
 #define IO_PIC1         0x20    // Master (IRQs 0-7)

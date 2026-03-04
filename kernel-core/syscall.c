@@ -1,3 +1,5 @@
+// Syscall dispatch: maps syscall numbers to kernel handlers
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"

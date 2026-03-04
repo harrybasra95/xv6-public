@@ -4,7 +4,7 @@
 # This code runs in user space.
 
 #include "syscall.h"
-#include "traps.h"
+#include "../kernel-core/traps.h"
 
 
 # exec(init, argv)

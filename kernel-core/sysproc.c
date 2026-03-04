@@ -1,3 +1,5 @@
+// Process-related syscalls (fork, exit, wait, kill, getpid, sleep, etc.)
+
 #include "types.h"
 #include "./boot/x86.h"
 #include "defs.h"

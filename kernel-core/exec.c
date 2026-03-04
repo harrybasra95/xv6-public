@@ -1,3 +1,5 @@
+// Implements exec() to load an ELF user program into a process
+
 #include "types.h"
 #include "param.h"
 #include "./boot/memlayout.h"

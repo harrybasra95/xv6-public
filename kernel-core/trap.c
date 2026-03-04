@@ -1,3 +1,5 @@
+// Interrupt/trap handling in C (system calls, timer interrupts, faults).
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"

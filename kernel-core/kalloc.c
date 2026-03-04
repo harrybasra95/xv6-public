@@ -1,3 +1,5 @@
+// Physical page allocator (kernel memory allocation for pages)
+
 // Physical memory allocator, intended to allocate
 // memory for user processes, kernel stacks, page table pages,
 // and pipe buffers. Allocates 4096-byte pages.

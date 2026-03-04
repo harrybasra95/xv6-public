@@ -6,7 +6,7 @@
 #include "./boot/x86.h"
 #include "./boot/memlayout.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 #include "spinlock.h"
 #include "sleeplock.h"
 

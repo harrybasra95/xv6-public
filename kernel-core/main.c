@@ -1,3 +1,5 @@
+// Kernel main: initializes subsystems and starts the scheduler.
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"

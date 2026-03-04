@@ -1,10 +1,12 @@
+// Virtual memory: page tables, mapping, usermemory allocations/copyin/copyout
+
 #include "param.h"
 #include "types.h"
 #include "defs.h"
 #include "./boot/x86.h"
 #include "./boot/memlayout.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 #include "elf.h"
 
 extern char data[];  // defined by kernel.ld

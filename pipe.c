@@ -2,7 +2,7 @@
 #include "defs.h"
 #include "param.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 #include "fs.h"
 #include "spinlock.h"
 #include "sleeplock.h"

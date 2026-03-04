@@ -9,7 +9,7 @@
 #include "mp.h"
 #include "./boot/x86.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 
 struct cpu cpus[NCPU];
 int ncpu;

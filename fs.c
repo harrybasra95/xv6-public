@@ -14,7 +14,7 @@
 #include "param.h"
 #include "stat.h"
 #include "./boot/mmu.h"
-#include "proc.h"
+#include "./kernel-core/proc.h"
 #include "spinlock.h"
 #include "sleeplock.h"
 #include "fs.h"

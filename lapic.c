@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "date.h"
 #include "./boot/memlayout.h"
-#include "traps.h"
+#include "./kernel-core/traps.h"
 #include "./boot/mmu.h"
 #include "./boot/x86.h"
 

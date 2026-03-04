@@ -1,3 +1,5 @@
+// Process table, scheduler, fork/exit/wait,sleep/wakeup
+
 #include "types.h"
 #include "defs.h"
 #include "param.h"
