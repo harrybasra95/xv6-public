@@ -1,32 +1,40 @@
+
+
 OBJS = \
-	bio.o\
-	console.o\
-	exec.o\
-	file.o\
-	fs.o\
-	ide.o\
-	ioapic.o\
-	kalloc.o\
-	kbd.o\
-	lapic.o\
-	log.o\
-	main.o\
-	mp.o\
-	picirq.o\
-	pipe.o\
-	proc.o\
-	sleeplock.o\
-	spinlock.o\
-	string.o\
-	swtch.o\
-	syscall.o\
+	kernel-core/exec.o\
+	kernel-core/kalloc.o\
+	kernel-core/main.o\
+	kernel-core/proc.o\
+	kernel-core/syscall.o\
+	kernel-core/sysproc.o\
+	kernel-core/trap.o\
+	kernel-core/vm.o\
+	\
+	boot/swtch.o\
+	boot/trapasm.o\
+	\
+	fs/file.o\
+	fs/fs.o\
+	fs/ide.o\
+	fs/log.o\
+	fs/pipe.o\
+	\
+	devices/console.o\
+	devices/ioapic.o\
+	devices/kbd.o\
+	devices/lapic.o\
+	devices/mp.o\
+	devices/picirq.o\
+	devices/uart.o\
+	\
+	sync/sleeplock.o\
+	sync/spinlock.o\
+	\
+	headers/string.o\
+	\
+	user-programs/bio.o\
 	sysfile.o\
-	sysproc.o\
-	trapasm.o\
-	trap.o\
-	uart.o\
 	vectors.o\
-	vm.o\
 
 # Cross-compiling (e.g., on Mac OS X)
 # TOOLPREFIX = i386-jos-elf
@@ -79,7 +87,7 @@ OBJDUMP = $(TOOLPREFIX)objdump
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
 CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS += -Wno-array-bounds -Wno-infinite-recursion
-CFLAGS += -Iboot -Ikernel-core -I. -Isync
+CFLAGS += -Iboot -Ikernel-core -I. -Isync -Ifs -Idevices -Iheaders -Iuser-programs -Ibuild-tools
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
@@ -111,7 +119,7 @@ bootblock: ./boot/bootasm.S ./boot/bootmain.c
 	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
 	$(OBJDUMP) -S bootblock.o > bootblock.asm
 	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
-	./sign.pl bootblock
+	./build-tools/sign.pl bootblock
 
 entryother: boot/entryother.S
 	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c boot/entryother.S
@@ -161,8 +169,8 @@ _forktest: forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
 	$(OBJDUMP) -S _forktest > forktest.asm
 
-mkfs: mkfs.c fs.h
-	gcc -Werror -Wall -o mkfs mkfs.c
+mkfs: fs/mkfs.c fs/fs.h
+	gcc -Werror -Wall -o mkfs fs/mkfs.c
 
 # Prevent deletion of intermediate files, e.g. cat.o, after first build, so
 # that disk image changes after first build are persistent until clean.  More
@@ -187,8 +195,8 @@ UPROGS=\
 	_wc\
 	_zombie\
 
-fs.img: mkfs README $(UPROGS)
-	./mkfs fs.img README $(UPROGS)
+fs.img: mkfs build-tools/README $(UPROGS)
+	./mkfs fs.img build-tools/README $(UPROGS)
 
 -include *.d
 
@@ -200,8 +208,8 @@ clean:
 	$(UPROGS)
 
 # make a printout
-FILES = $(shell grep -v '^\#' runoff.list)
-PRINT = runoff.list runoff.spec README toc.hdr toc.ftr $(FILES)
+FILES = $(shell grep -v '^\#' build-tools/runoff.list)
+PRINT = build-tools/runoff.list runoff.spec README toc.hdr toc.ftr $(FILES)
 
 xv6.pdf: $(PRINT)
 	./runoff
@@ -253,10 +261,10 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 # check in that version.
 
 EXTRA=\
-	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
+	fs/mkfs.c headers/ulib.c headers/user.h user-programs/cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c\
-	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
+	README dot-bochsrc *.pl toc.* runoff runoff1 build-tools/runoff.list\
 	.gdbinit.tmpl gdbutil\
 
 dist:
@@ -291,38 +299,7 @@ tar:
 .PHONY: dist-test dist
 
 
-exec.o: kernel-core/exec.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-kalloc.o: kernel-core/kalloc.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-main.o: kernel-core/main.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-proc.o: kernel-core/proc.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-syscall.o: kernel-core/syscall.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-sysproc.o: kernel-core/sysproc.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-trap.o: kernel-core/trap.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-swtch.o: boot/swtch.S
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-trapasm.o: boot/trapasm.S
-	$(CC) $(CFLAGS) -c -o $@ $<
-
 entry.o: boot/entry.S
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-sleeplock.o: sync/sleeplock.c
-	$(CC) $(CFLAGS) -c -o $@ $<
 
-spinlock.o: sync/spinlock.c
-	$(CC) $(CFLAGS) -c -o $@ $<

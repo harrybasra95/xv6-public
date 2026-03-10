@@ -1,7 +1,7 @@
 # basic headers
-types.h
-param.h
-memlayout.h
+headers/types.h
+headers/param.h
+headers/memlayout.h
 defs.h
 x86.h
 asm.h
