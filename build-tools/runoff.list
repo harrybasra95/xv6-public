@@ -68,7 +68,7 @@ uart.c
 
 # user-level
 initcode.S
-usys.S
+boot/usys.S
 init.c
 sh.c
 

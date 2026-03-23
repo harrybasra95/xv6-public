@@ -40,7 +40,7 @@ OBJS = \
 # TOOLPREFIX = i386-jos-elf
 
 # Using native tools (e.g., on X86 Linux)
-#TOOLPREFIX = 
+TOOLPREFIX = i686-elf-
 
 # Try to infer the correct TOOLPREFIX if not set
 ifndef TOOLPREFIX
@@ -59,7 +59,7 @@ TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/d
 endif
 
 # If the makefile can't find QEMU, specify its path here
-# QEMU = qemu-system-i386
+QEMU = qemu-system-i386
 
 # Try to infer the correct QEMU
 ifndef QEMU
@@ -179,21 +179,21 @@ mkfs: fs/mkfs.c fs/fs.h
 .PRECIOUS: %.o
 
 UPROGS=\
-	_cat\
-	_echo\
-	_forktest\
-	_grep\
-	_init\
-	_kill\
-	_ln\
-	_ls\
-	_mkdir\
-	_rm\
-	_sh\
-	_stressfs\
-	_usertests\
-	_wc\
-	_zombie\
+	user-programs/_cat\
+	user-programs/_echo\
+	user-programs/_forktest\
+	user-programs/_grep\
+	user-programs/_init\
+	user-programs/_kill\
+	user-programs/_ln\
+	user-programs/_ls\
+	user-programs/_mkdir\
+	user-programs/_rm\
+	user-programs/_sh\
+	user-programs/_stressfs\
+	user-programs/_usertests\
+	user-programs/_wc\
+	user-programs/_zombie\
 
 fs.img: mkfs build-tools/README $(UPROGS)
 	./mkfs fs.img build-tools/README $(UPROGS)
@@ -203,6 +203,8 @@ fs.img: mkfs build-tools/README $(UPROGS)
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*.o *.d *.asm *.sym vectors.S bootblock entryother \
+	**/*.tex **/*.dvi **/*.idx **/*.aux **/*.log **/*.ind **/*.ilg \
+	**/*.o **/*.d **/*.asm **/*.sym \
 	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
 	xv6memfs.img mkfs .gdbinit \
 	$(UPROGS)
@@ -270,6 +272,7 @@ EXTRA=\
 dist:
 	rm -rf dist
 	mkdir dist
+	echo "dist is running"
 	for i in $(FILES); \
 	do \
 		grep -v PAGEBREAK $$i >dist/$$i; \
@@ -302,4 +305,14 @@ tar:
 entry.o: boot/entry.S
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+ulib.o: headers/ulib.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
+usys.o: boot/usys.S
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+printf.o: devices/printf.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+umalloc.o: headers/umalloc.c
+	$(CC) $(CFLAGS) -c -o $@ $<
