@@ -1,0 +1,4 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+UseTab: Never
+SortIncludes: false # Set this to false until your headers are 100% self-sufficient!
