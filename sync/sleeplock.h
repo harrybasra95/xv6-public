@@ -1,3 +1,5 @@
+#pragma once
+
 // Sleeplock structs and APIs
 // Long-term locks for processes
 struct sleeplock {

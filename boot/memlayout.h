@@ -1,3 +1,5 @@
+#pragma once
+
 // Memory map constants: kernel base, device regions, physical layout
 // Memory layout
 

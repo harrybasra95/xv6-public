@@ -1,3 +1,5 @@
+#pragma once
+
 // Syscall numbers and syscall-related declarations
 
 // System call numbers

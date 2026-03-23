@@ -1,3 +1,5 @@
+#pragma once
+
 // x86 paging/segmentation structures and constants (PTEs, CR3, flags)
 // This file contains definitions for the
 // x86 memory management unit (MMU).

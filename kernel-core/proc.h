@@ -1,3 +1,5 @@
+#pragma once
+
 // Process structure definitions and proc-related declarations
 
 // Per-CPU state

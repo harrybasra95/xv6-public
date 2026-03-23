@@ -1,3 +1,5 @@
+#pragma once
+
 // Spinlock structs and APIs
 // Mutual exclusion lock.
 struct spinlock {

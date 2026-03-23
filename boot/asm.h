@@ -1,3 +1,5 @@
+#pragma once
+
 // Helper macros for inline assembly and low level constants.
 //
 // assembler macros to create x86 segments

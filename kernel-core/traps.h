@@ -1,3 +1,4 @@
+#pragma once
 // Trap numbers/structures and trap-related definitions
 // x86 trap and interrupt constants.
 
