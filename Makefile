@@ -1,318 +1,171 @@
+# --- 1. Config and Tools
+BUILD_DIR = build
 
-
-OBJS = \
-	kernel-core/exec.o\
-	kernel-core/kalloc.o\
-	kernel-core/main.o\
-	kernel-core/proc.o\
-	kernel-core/syscall.o\
-	kernel-core/sysproc.o\
-	kernel-core/trap.o\
-	kernel-core/vm.o\
-	\
-	boot/swtch.o\
-	boot/trapasm.o\
-	\
-	fs/file.o\
-	fs/fs.o\
-	fs/ide.o\
-	fs/log.o\
-	fs/pipe.o\
-	\
-	devices/console.o\
-	devices/ioapic.o\
-	devices/kbd.o\
-	devices/lapic.o\
-	devices/mp.o\
-	devices/picirq.o\
-	devices/uart.o\
-	\
-	sync/sleeplock.o\
-	sync/spinlock.o\
-	\
-	headers/string.o\
-	\
-	user-programs/bio.o\
-	sysfile.o\
-	vectors.o\
-
-# Cross-compiling (e.g., on Mac OS X)
-# TOOLPREFIX = i386-jos-elf
-
-# Using native tools (e.g., on X86 Linux)
 TOOLPREFIX = i686-elf-
 
-# Try to infer the correct TOOLPREFIX if not set
-ifndef TOOLPREFIX
-TOOLPREFIX := $(shell if i386-jos-elf-objdump -i 2>&1 | grep '^elf32-i386$$' >/dev/null 2>&1; \
-	then echo 'i386-jos-elf-'; \
-	elif objdump -i 2>&1 | grep 'elf32-i386' >/dev/null 2>&1; \
-	then echo ''; \
-	else echo "***" 1>&2; \
-	echo "*** Error: Couldn't find an i386-*-elf version of GCC/binutils." 1>&2; \
-	echo "*** Is the directory with i386-jos-elf-gcc in your PATH?" 1>&2; \
-	echo "*** If your i386-*-elf toolchain is installed with a command" 1>&2; \
-	echo "*** prefix other than 'i386-jos-elf-', set your TOOLPREFIX" 1>&2; \
-	echo "*** environment variable to that prefix and run 'make' again." 1>&2; \
-	echo "*** To turn off this error, run 'gmake TOOLPREFIX= ...'." 1>&2; \
-	echo "***" 1>&2; exit 1; fi)
-endif
-
-# If the makefile can't find QEMU, specify its path here
-QEMU = qemu-system-i386
-
-# Try to infer the correct QEMU
-ifndef QEMU
-QEMU = $(shell if which qemu > /dev/null; \
-	then echo qemu; exit; \
-	elif which qemu-system-i386 > /dev/null; \
-	then echo qemu-system-i386; exit; \
-	elif which qemu-system-x86_64 > /dev/null; \
-	then echo qemu-system-x86_64; exit; \
-	else \
-	qemu=/Applications/Q.app/Contents/MacOS/i386-softmmu.app/Contents/MacOS/i386-softmmu; \
-	if test -x $$qemu; then echo $$qemu; exit; fi; fi; \
-	echo "***" 1>&2; \
-	echo "*** Error: Couldn't find a working QEMU executable." 1>&2; \
-	echo "*** Is the directory containing the qemu binary in your PATH" 1>&2; \
-	echo "*** or have you tried setting the QEMU variable in Makefile?" 1>&2; \
-	echo "***" 1>&2; exit 1)
-endif
-
+# Complier and Linker definitions
 CC = $(TOOLPREFIX)gcc
 AS = $(TOOLPREFIX)gas
 LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
+
+# CFLAGS: How C files are compiled
+# -m32: Compile for 32-bit CPU (xv6 is 32-bit)
+# -O2: Optimize the code
+# -fno-pie -fno-pic: Disable position-independent code (kernel needs fixed addresses)
+# -nostdinc: Don't use host computer's standard libs
+# -I: where to look for header (.h) files
 CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer
-CFLAGS += $(shell $(CC) -fno-stack-protector -E -x c /dev/null >/dev/null 2>&1 && echo -fno-stack-protector)
 CFLAGS += -Wno-array-bounds -Wno-infinite-recursion
 CFLAGS += -Iboot -Ikernel-core -I. -Isync -Ifs -Idevices -Iheaders -Iuser-programs -Ibuild-tools
-ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
-# FreeBSD ld wants ``elf_i386_fbsd''
-LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
 
-# Disable PIE when possible (for Ubuntu 16.10 toolchain)
-ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]no-pie'),)
-CFLAGS += -fno-pie -no-pie
-endif
-ifneq ($(shell $(CC) -dumpspecs 2>/dev/null | grep -e '[^f]nopie'),)
-CFLAGS += -fno-pie -nopie
-endif
+# ASFLAGS: How assembly files are compiled
+ASFLAGS = -m32 -gdwarf-2 -Wa,-divide -Iboot -Ikernel-core -I. -Isync -Ifs -Idevices -Iheaders
+
+# LDFLAGS: How files are linked together
+LDFLAGS = -m elf_i386
 
 
+# --- 2. KERNEL OBJECT FILES ---
+# List of all C and Assembly files that make up the core OS
+OBJS = \
+	kernel-core/exec.o \
+	kernel-core/kalloc.o \
+	kernel-core/main.o \
+	kernel-core/proc.o \
+	kernel-core/syscall.o \
+	kernel-core/sysproc.o \
+	kernel-core/trap.o \
+	kernel-core/vm.o \
+	boot/swtch.o \
+	boot/trapasm.o \
+	fs/file.o \
+	fs/fs.o \
+	fs/ide.o \
+	fs/log.o \
+	fs/pipe.o \
+	devices/console.o \
+	devices/ioapic.o \
+	devices/kbd.o \
+	devices/lapic.o \
+	devices/mp.o \
+	devices/picirq.o \
+	devices/uart.o \
+	sync/sleeplock.o \
+	sync/spinlock.o \
+	headers/string.o \
+	user-programs/bio.o \
+	sysfile.o \
+	vectors.o
+
+# Magic trick: Prepend $(BUILD_DIR)/ to every object file
+OBJS := $(addprefix $(BUILD_DIR)/, $(OBJS))
 
 
-xv6.img: bootblock kernel
-	dd if=/dev/zero of=xv6.img count=10000
-	dd if=bootblock of=xv6.img conv=notrunc
-	dd if=kernel of=xv6.img seek=1 conv=notrunc
+# --- 3. GENERIC COMPILATION RULES ---
+# Tell Make not to delete these intermediate files
+.PRECIOUS: $(BUILD_DIR)/%.o
 
-xv6memfs.img: bootblock kernelmemfs
-	dd if=/dev/zero of=xv6memfs.img count=10000
-	dd if=bootblock of=xv6memfs.img conv=notrunc
-	dd if=kernelmemfs of=xv6memfs.img seek=1 conv=notrunc
+# Rule: How to turn ANY .c file into a .o file in the build directory
+$(BUILD_DIR)/%.o: %.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-bootblock: ./boot/bootasm.S ./boot/bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -I. -c ./boot/bootmain.c
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c ./boot/bootasm.S
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o bootblock.o bootasm.o bootmain.o
-	$(OBJDUMP) -S bootblock.o > bootblock.asm
-	$(OBJCOPY) -S -O binary -j .text bootblock.o bootblock
-	./build-tools/sign.pl bootblock
+# Rule: How to turn ANY .S (Assembly) file into a .o file in the build directory
+$(BUILD_DIR)/%.o: %.S
+	@mkdir -p $(@D)
+	$(CC) $(ASFLAGS) -c -o $@ $<
 
-entryother: boot/entryother.S
-	$(CC) $(CFLAGS) -fno-pic -nostdinc -I. -c boot/entryother.S
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o bootblockother.o entryother.o
-	$(OBJCOPY) -S -O binary -j .text bootblockother.o entryother
-	$(OBJDUMP) -S bootblockother.o > entryother.asm
-
-initcode: boot/initcode.S
-	$(CC) $(CFLAGS) -nostdinc -I. -c boot/initcode.S
-	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o initcode.out initcode.o
-	$(OBJCOPY) -S -O binary initcode.out initcode
-	$(OBJDUMP) -S initcode.o > initcode.asm
-
-kernel: $(OBJS) entry.o entryother initcode boot/kernel.ld
-	$(LD) $(LDFLAGS) -T boot/kernel.ld -o kernel entry.o $(OBJS) -b binary initcode entryother
-	$(OBJDUMP) -S kernel > kernel.asm
-	$(OBJDUMP) -t kernel | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernel.sym
-
-# kernelmemfs is a copy of kernel that maintains the
-# disk image in memory instead of writing to a disk.
-# This is not so useful for testing persistent storage or
-# exploring disk buffering implementations, but it is
-# great for testing the kernel on real hardware without
-# needing a scratch disk.
-MEMFSOBJS = $(filter-out ide.o,$(OBJS)) memide.o
-kernelmemfs: $(MEMFSOBJS) entry.o entryother initcode boot/kernel.ld fs.img
-	$(LD) $(LDFLAGS) -T boot/kernel.ld -o kernelmemfs entry.o  $(MEMFSOBJS) -b binary initcode entryother fs.img
-	$(OBJDUMP) -S kernelmemfs > kernelmemfs.asm
-	$(OBJDUMP) -t kernelmemfs | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > kernelmemfs.sym
-
-tags: $(OBJS) entryother.S _init
-	etags *.S *.c
-
+# Auto-generate vectors.S using the perl script
 vectors.S: boot/vectors.pl
 	perl boot/vectors.pl > vectors.S
 
-ULIB = ulib.o usys.o printf.o umalloc.o
 
-_%: %.o $(ULIB)
+# --- 4. BOOTLOADER & SPECIAL BINARIES ---
+# Bootblock: The first 512 bytes of the disk
+$(BUILD_DIR)/bootblock: boot/bootasm.S boot/bootmain.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -fno-pic -O -nostdinc -c boot/bootmain.c -o $(BUILD_DIR)/bootmain.o
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -c boot/bootasm.S -o $(BUILD_DIR)/bootasm.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7C00 -o $(BUILD_DIR)/bootblock.o $(BUILD_DIR)/bootasm.o $(BUILD_DIR)/bootmain.o
+	$(OBJCOPY) -S -O binary -j .text $(BUILD_DIR)/bootblock.o $@
+	./build-tools/sign.pl $@
+
+# Entryother: Used to wake up secondary CPUs
+$(BUILD_DIR)/entryother: boot/entryother.S
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -fno-pic -nostdinc -c $< -o $(BUILD_DIR)/entryother.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0x7000 -o $(BUILD_DIR)/bootblockother.o $(BUILD_DIR)/entryother.o
+	$(OBJCOPY) -S -O binary -j .text $(BUILD_DIR)/bootblockother.o $@
+
+# Initcode: The first user program embedded in the kernel
+$(BUILD_DIR)/initcode: boot/initcode.S
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -nostdinc -c $< -o $(BUILD_DIR)/initcode.o
+	$(LD) $(LDFLAGS) -N -e start -Ttext 0 -o $(BUILD_DIR)/initcode.out $(BUILD_DIR)/initcode.o
+	$(OBJCOPY) -S -O binary $(BUILD_DIR)/initcode.out $@
+
+# --- 5. THE KERNEL ---
+$(BUILD_DIR)/kernel: $(OBJS) $(BUILD_DIR)/boot/entry.o $(BUILD_DIR)/entryother $(BUILD_DIR)/initcode boot/kernel.ld
+	@cp $(BUILD_DIR)/initcode initcode
+	@cp $(BUILD_DIR)/entryother entryother
+	$(LD) $(LDFLAGS) -T boot/kernel.ld -o $@ $(BUILD_DIR)/boot/entry.o $(OBJS) -b binary initcode entryother
+	@rm -f initcode entryother
+	$(OBJDUMP) -S $@ > $(BUILD_DIR)/kernel.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $(BUILD_DIR)/kernel.sym
+
+
+# --- 6. USER PROGRAMS & FILESYSTEM ---
+# The User Library (functions user programs can call)
+ULIB = $(BUILD_DIR)/headers/ulib.o $(BUILD_DIR)/boot/usys.o $(BUILD_DIR)/devices/printf.o $(BUILD_DIR)/headers/umalloc.o
+
+# Rule: How to link a user program (e.g., cat)
+$(BUILD_DIR)/user-programs/_%: $(BUILD_DIR)/user-programs/%.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $@ $^
-	$(OBJDUMP) -S $@ > $*.asm
-	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $*.sym
+	$(OBJDUMP) -S $@ > $@.asm
 
-_forktest: forktest.o $(ULIB)
-	# forktest has less library code linked in - needs to be small
-	# in order to be able to max out the proc table.
-	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o _forktest forktest.o ulib.o usys.o
-	$(OBJDUMP) -S _forktest > forktest.asm
-
-mkfs: fs/mkfs.c fs/fs.h
-	gcc -Werror -Wall -o mkfs fs/mkfs.c
-
-# Prevent deletion of intermediate files, e.g. cat.o, after first build, so
-# that disk image changes after first build are persistent until clean.  More
-# details:
-# http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
-.PRECIOUS: %.o
-
+# List of all user programs
 UPROGS=\
-	user-programs/_cat\
-	user-programs/_echo\
-	user-programs/_forktest\
-	user-programs/_grep\
-	user-programs/_init\
-	user-programs/_kill\
-	user-programs/_ln\
-	user-programs/_ls\
-	user-programs/_mkdir\
-	user-programs/_rm\
-	user-programs/_sh\
-	user-programs/_stressfs\
-	user-programs/_usertests\
-	user-programs/_wc\
-	user-programs/_zombie\
+	$(BUILD_DIR)/user-programs/_cat \
+	$(BUILD_DIR)/user-programs/_echo \
+	$(BUILD_DIR)/user-programs/_forktest \
+	$(BUILD_DIR)/user-programs/_grep \
+	$(BUILD_DIR)/user-programs/_init \
+	$(BUILD_DIR)/user-programs/_kill \
+	$(BUILD_DIR)/user-programs/_ln \
+	$(BUILD_DIR)/user-programs/_ls \
+	$(BUILD_DIR)/user-programs/_mkdir \
+	$(BUILD_DIR)/user-programs/_rm \
+	$(BUILD_DIR)/user-programs/_sh \
+	$(BUILD_DIR)/user-programs/_stressfs \
+	$(BUILD_DIR)/user-programs/_usertests \
+	$(BUILD_DIR)/user-programs/_wc \
+	$(BUILD_DIR)/user-programs/_zombie
 
-fs.img: mkfs build-tools/README $(UPROGS)
-	./mkfs fs.img build-tools/README $(UPROGS)
+# Build the filesystem maker tool using the HOST computer's compiler
+$(BUILD_DIR)/mkfs: fs/mkfs.c fs/fs.h
+	@mkdir -p $(@D)
+	gcc -Werror -Wall -o $@ fs/mkfs.c
 
--include *.d
+# Format fs.img and pack user programs into it
+fs.img: $(BUILD_DIR)/mkfs build-tools/README $(UPROGS)
+	$(BUILD_DIR)/mkfs fs.img build-tools/README $(UPROGS)
 
-clean: 
-	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
-	*.o *.d *.asm *.sym vectors.S bootblock entryother \
-	**/*.tex **/*.dvi **/*.idx **/*.aux **/*.log **/*.ind **/*.ilg \
-	**/*.o **/*.d **/*.asm **/*.sym \
-	initcode initcode.out kernel xv6.img fs.img kernelmemfs \
-	xv6memfs.img mkfs .gdbinit \
-	$(UPROGS)
 
-# make a printout
-FILES = $(shell grep -v '^\#' build-tools/runoff.list)
-PRINT = build-tools/runoff.list runoff.spec README toc.hdr toc.ftr $(FILES)
+# --- 7. FINAL DISK IMAGES & RUN TARGETS ---
+xv6.img: $(BUILD_DIR)/bootblock $(BUILD_DIR)/kernel
+	dd if=/dev/zero of=xv6.img count=10000
+	dd if=$(BUILD_DIR)/bootblock of=xv6.img conv=notrunc
+	dd if=$(BUILD_DIR)/kernel of=xv6.img seek=1 conv=notrunc
 
-xv6.pdf: $(PRINT)
-	./runoff
-	ls -l xv6.pdf
-
-print: xv6.pdf
-
-# run in emulators
-
-bochs : fs.img xv6.img
-	if [ ! -e .bochsrc ]; then ln -s dot-bochsrc .bochsrc; fi
-	bochs -q
-
-# try to generate a unique GDB port
-GDBPORT = $(shell expr `id -u` % 5000 + 25000)
-# QEMU's gdb stub command line changed in 0.11
-QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
-	then echo "-gdb tcp::$(GDBPORT)"; \
-	else echo "-s -p $(GDBPORT)"; fi)
-ifndef CPUS
-CPUS := 2
-endif
-QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512 $(QEMUEXTRA)
-
-qemu: fs.img xv6.img
-	$(QEMU) -serial mon:stdio $(QEMUOPTS)
-
-qemu-memfs: xv6memfs.img
-	$(QEMU) -drive file=xv6memfs.img,index=0,media=disk,format=raw -smp $(CPUS) -m 256
+# QEMU emulator variables
+QEMU = qemu-system-i386
+CPUS = 2
+QEMUOPTS = -drive file=fs.img,index=1,media=disk,format=raw -drive file=xv6.img,index=0,media=disk,format=raw -smp $(CPUS) -m 512
 
 qemu-nox: fs.img xv6.img
 	$(QEMU) -nographic $(QEMUOPTS)
 
-.gdbinit: .gdbinit.tmpl
-	sed "s/localhost:1234/localhost:$(GDBPORT)/" < $^ > $@
-
-qemu-gdb: fs.img xv6.img .gdbinit
-	@echo "*** Now run 'gdb'." 1>&2
-	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
-
-qemu-nox-gdb: fs.img xv6.img .gdbinit
-	@echo "*** Now run 'gdb'." 1>&2
-	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
-
-# CUT HERE
-# prepare dist for students
-# after running make dist, probably want to
-# rename it to rev0 or rev1 or so on and then
-# check in that version.
-
-EXTRA=\
-	fs/mkfs.c headers/ulib.c headers/user.h user-programs/cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
-	printf.c umalloc.c\
-	README dot-bochsrc *.pl toc.* runoff runoff1 build-tools/runoff.list\
-	.gdbinit.tmpl gdbutil\
-
-dist:
-	rm -rf dist
-	mkdir dist
-	echo "dist is running"
-	for i in $(FILES); \
-	do \
-		grep -v PAGEBREAK $$i >dist/$$i; \
-	done
-	sed '/CUT HERE/,$$d' Makefile >dist/Makefile
-	echo >dist/runoff.spec
-	cp $(EXTRA) dist
-
-dist-test:
-	rm -rf dist
-	make dist
-	rm -rf dist-test
-	mkdir dist-test
-	cp dist/* dist-test
-	cd dist-test; $(MAKE) print
-	cd dist-test; $(MAKE) bochs || true
-	cd dist-test; $(MAKE) qemu
-
-# update this rule (change rev#) when it is time to
-# make a new revision.
-tar:
-	rm -rf /tmp/xv6
-	mkdir -p /tmp/xv6
-	cp dist/* dist/.gdbinit.tmpl /tmp/xv6
-	(cd /tmp; tar cf - xv6) | gzip >xv6-rev10.tar.gz  # the next one will be 10 (9/17)
-
-.PHONY: dist-test dist
-
-
-entry.o: boot/entry.S
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-ulib.o: headers/ulib.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-usys.o: boot/usys.S
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-printf.o: devices/printf.c
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-umalloc.o: headers/umalloc.c
-	$(CC) $(CFLAGS) -c -o $@ $<
+clean: 
+	rm -rf $(BUILD_DIR) xv6.img fs.img vectors.S
