@@ -35,5 +35,6 @@ int main(int argc, char *argv[]) {
     cat(fd);
     close(fd);
   }
+  printf(1, "\n");
   exit();
 }

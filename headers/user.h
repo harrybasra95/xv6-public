@@ -1,4 +1,5 @@
 #pragma once
+#include "types.h"
 
 struct stat;
 struct rtcdate;

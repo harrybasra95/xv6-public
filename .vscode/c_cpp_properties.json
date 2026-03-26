@@ -1,0 +1,52 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "xv6-i386",
+      "compilerPath": "/opt/homebrew/bin/i686-elf-gcc",
+      "intelliSenseMode": "gcc-x86",
+      "cStandard": "c11",
+      "cppStandard": "c++17",
+      "includePath": [
+        "${workspaceFolder}",
+        "${workspaceFolder}/boot",
+        "${workspaceFolder}/kernel-core",
+        "${workspaceFolder}/sync",
+        "${workspaceFolder}/fs",
+        "${workspaceFolder}/devices",
+        "${workspaceFolder}/headers",
+        "${workspaceFolder}/user-programs",
+        "${workspaceFolder}/build-tools"
+      ],
+      "defines": [
+        "__ELF__"
+      ],
+      "compilerArgs": [
+        "-m32",
+        "-fno-pic",
+        "-static",
+        "-fno-builtin",
+        "-fno-strict-aliasing",
+        "-Wall",
+        "-Werror",
+        "-fno-omit-frame-pointer",
+        "-Wno-array-bounds",
+        "-Wno-infinite-recursion"
+      ],
+      "browse": {
+        "path": [
+          "${workspaceFolder}",
+          "${workspaceFolder}/boot",
+          "${workspaceFolder}/kernel-core",
+          "${workspaceFolder}/sync",
+          "${workspaceFolder}/fs",
+          "${workspaceFolder}/devices",
+          "${workspaceFolder}/headers",
+          "${workspaceFolder}/user-programs",
+          "${workspaceFolder}/build-tools"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ]
+}

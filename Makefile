@@ -141,7 +141,9 @@ UPROGS=\
 	$(BUILD_DIR)/user-programs/_stressfs \
 	$(BUILD_DIR)/user-programs/_usertests \
 	$(BUILD_DIR)/user-programs/_wc \
-	$(BUILD_DIR)/user-programs/_zombie
+	$(BUILD_DIR)/user-programs/_zombie \
+	$(BUILD_DIR)/user-programs/_hello \
+	$(BUILD_DIR)/user-programs/_cp
 
 # Build the filesystem maker tool using the HOST computer's compiler
 $(BUILD_DIR)/mkfs: fs/mkfs.c fs/fs.h
@@ -149,8 +151,8 @@ $(BUILD_DIR)/mkfs: fs/mkfs.c fs/fs.h
 	gcc -Werror -Wall -o $@ fs/mkfs.c
 
 # Format fs.img and pack user programs into it
-fs.img: $(BUILD_DIR)/mkfs build-tools/README $(UPROGS)
-	$(BUILD_DIR)/mkfs fs.img build-tools/README $(UPROGS)
+fs.img: $(BUILD_DIR)/mkfs build-tools/README user-programs/hello.txt $(UPROGS)
+	$(BUILD_DIR)/mkfs fs.img build-tools/README user-programs/hello.txt $(UPROGS)
 
 
 # --- 7. FINAL DISK IMAGES & RUN TARGETS ---

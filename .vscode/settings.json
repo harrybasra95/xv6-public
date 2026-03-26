@@ -1,0 +1,10 @@
+{
+  "C_Cpp.default.configurationProvider": "ms-vscode.cpptools",
+  "C_Cpp.errorSquiggles": "enabled",
+  "files.associations": {
+    "*.h": "c",
+    "*.c": "c",
+    "*.S": "asm"
+  },
+  "editor.formatOnSave": true
+}

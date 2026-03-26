@@ -1,0 +1,16 @@
+CompileFlags:
+  Add:
+    - --target=i386-unknown-elf
+    - -m32
+    - -fno-builtin
+    - -fno-strict-aliasing
+    - -fno-omit-frame-pointer
+    - -I.
+    - -Iboot
+    - -Ikernel-core
+    - -Isync
+    - -Ifs
+    - -Idevices
+    - -Iheaders
+    - -Iuser-programs
+    - -Ibuild-tools
