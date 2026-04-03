@@ -1,50 +1,76 @@
 #include "types.h"
-#include "stat.h"
+#include "fcntl.h"
 #include "user.h"
 
-char buf[512];
 
-void wc(int fd, char *name) {
-  int i, n;
-  int l, w, c, inword;
-
-  l = w = c = 0;
-  inword = 0;
-  while ((n = read(fd, buf, sizeof(buf))) > 0) {
-    for (i = 0; i < n; i++) {
-      c++;
-      if (buf[i] == '\n')
-        l++;
-      if (strchr(" \r\t\n\v", buf[i]))
-        inword = 0;
-      else if (!inword) {
-        w++;
-        inword = 1;
-      }
-    }
-  }
-  if (n < 0) {
-    printf(1, "wc: read error\n");
-    exit();
-  }
-  printf(1, "%d %d %d %s\n", l, w, c, name);
-}
 
 int main(int argc, char *argv[]) {
-  int fd, i;
+  // wc [-l] [-w] [-c] [file...]
+  int printLines = 0;
+  int printWords = 0;
+  int printChar = 0;
+  int file_path_start_index = 0;
 
-  if (argc <= 1) {
-    wc(0, "");
-    exit();
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "-l") == 0) {
+      printLines = 1;
+      continue;
+    }
+    if (strcmp(argv[i], "-w") == 0) {
+      printWords = 1;
+      continue;
+    }
+    if (strcmp(argv[i], "-c") == 0) {
+      printChar = 1;
+      continue;
+    }
+    file_path_start_index = i;
   }
-
-  for (i = 1; i < argc; i++) {
-    if ((fd = open(argv[i], 0)) < 0) {
-      printf(1, "wc: cannot open %s\n", argv[i]);
+  if (printChar == 0 && printLines == 0 && printWords == 0) {
+    printLines = 1;
+    printWords = 1;
+    printChar = 1;
+  }
+  int fd;
+  int l = 0;
+  int c = 0;
+  int w = 0;
+  int n;
+  char buf[512];
+  printf(1, "Filename L C W\n");
+  while (file_path_start_index < argc) {
+    if ((fd = open(argv[file_path_start_index], O_RDONLY)) < 0) {
+      printf(2, "wc: file read error - %s\n", argv[file_path_start_index]);
       exit();
     }
-    wc(fd, argv[i]);
-    close(fd);
+    int word_start = 0;
+    while ((n = read(fd, buf, 512)) > 0) {
+      for (int i = 0; i < n; i++) {
+        if (buf[i] == '\n') {
+          l++;
+          if (word_start == 1) {
+            word_start = 0;
+            w++;
+          }
+          continue;
+        }
+        if (buf[i] != ' ') {
+          c++;
+          word_start = 1;
+          continue;
+        }
+        if (buf[i] == ' ' && word_start == 1) {
+          word_start = 0;
+          w++;
+        }
+      }
+    }
+    if (fd) {
+      close(fd);
+    }
+    printf(1, "%s %d %d %d\n", argv[file_path_start_index], l, c, w);
+    file_path_start_index++;
+    l = c = w = 0;
   }
   exit();
 }
