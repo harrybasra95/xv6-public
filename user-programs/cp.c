@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
     exit();
   }
 
-  int fd_dest = open(argv[2], O_WRONLY);
+  int fd_dest = open(argv[2], O_WRONLY | O_CREATE);
   if (fd_dest < 0) {
     printf(2, "cp: cannot create %s\n", argv[2]);
     exit();
